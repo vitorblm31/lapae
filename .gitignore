@@ -1,0 +1,23 @@
+# Dados de saúde de terceiros: nunca versionar os relatórios originais
+dados/bruto/*
+!dados/bruto/LEIAME.md
+
+# Bases derivadas dos relatórios reais ficam fora do Git até haver autorização do demandante.
+# A base de demonstração (sintética) pode ser versionada.
+dados/processado/*
+!dados/processado/.gitkeep
+!dados/processado/*_DEMO.csv
+
+# Credenciais e segredos
+.env
+*.key
+*.pem
+secrets*
+
+# Python e notebooks
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+.venv/
+venv/
