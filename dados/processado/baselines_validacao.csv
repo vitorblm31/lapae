@@ -1,0 +1,4 @@
+abordagem,MAE do total mensal (principal),WAPE por série (secundária),viés do total mensal
+trivial: média por origem,140.583,0.169,16.917
+trivial: mediana por origem,146.0,0.161,54.667
+operacional: último valor,263.667,0.272,263.667

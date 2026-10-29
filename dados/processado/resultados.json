@@ -1,0 +1,117 @@
+{
+ "validacao": [
+  {
+   "abordagem": "baseline trivial (média por origem)",
+   "MAE do total mensal (principal)": 140.583,
+   "WAPE por série (secundária)": 0.169,
+   "viés do total mensal": 16.917
+  },
+  {
+   "abordagem": "baseline operacional (último valor)",
+   "MAE do total mensal (principal)": 263.667,
+   "WAPE por série (secundária)": 0.272,
+   "viés do total mensal": 263.667
+  },
+  {
+   "abordagem": "modelo (Ridge relativo)",
+   "MAE do total mensal (principal)": 140.583,
+   "WAPE por série (secundária)": 0.169,
+   "viés do total mensal": 16.917
+  }
+ ],
+ "teste": [
+  {
+   "abordagem": "baseline trivial (média por origem)",
+   "MAE do total mensal (principal)": 109.121,
+   "WAPE por série (secundária)": 0.155,
+   "viés do total mensal": -52.03
+  },
+  {
+   "abordagem": "baseline operacional (último valor)",
+   "MAE do total mensal (principal)": 283.667,
+   "WAPE por série (secundária)": 0.19,
+   "viés do total mensal": -283.667
+  },
+  {
+   "abordagem": "modelo (Ridge relativo)",
+   "MAE do total mensal (principal)": 103.057,
+   "WAPE por série (secundária)": 0.152,
+   "viés do total mensal": -77.327
+  }
+ ],
+ "backtest": [
+  {
+   "abordagem": "Ridge relativo",
+   "MAE do total mensal": 145.622,
+   "WAPE por origem": 0.164,
+   "viés do total (previsto - real)": -60.215,
+   "n previsões": 21
+  },
+  {
+   "abordagem": "mediana por origem",
+   "MAE do total mensal": 146.286,
+   "WAPE por origem": 0.174,
+   "viés do total (previsto - real)": -51.19,
+   "n previsões": 21
+  },
+  {
+   "abordagem": "média por origem",
+   "MAE do total mensal": 150.368,
+   "WAPE por origem": 0.165,
+   "viés do total (previsto - real)": -47.705,
+   "n previsões": 21
+  },
+  {
+   "abordagem": "último valor",
+   "MAE do total mensal": 231.048,
+   "WAPE por origem": 0.237,
+   "viés do total (previsto - real)": -6.857,
+   "n previsões": 21
+  }
+ ],
+ "previsao_total": [
+  {
+   "mes": "2027-08-01",
+   "previsto_total": "1495.0",
+   "faixa_baixa": "1251.0",
+   "faixa_alta": "1772.0",
+   "vs_capacidade_1850": "-355.0"
+  },
+  {
+   "mes": "2027-09-01",
+   "previsto_total": "1515.0",
+   "faixa_baixa": "1271.0",
+   "faixa_alta": "1792.0",
+   "vs_capacidade_1850": "-335.0"
+  },
+  {
+   "mes": "2027-10-01",
+   "previsto_total": "1635.0",
+   "faixa_baixa": "1391.0",
+   "faixa_alta": "1912.0",
+   "vs_capacidade_1850": "-215.0"
+  },
+  {
+   "mes": "2027-11-01",
+   "previsto_total": "1493.0",
+   "faixa_baixa": "1249.0",
+   "faixa_alta": "1770.0",
+   "vs_capacidade_1850": "-357.0"
+  },
+  {
+   "mes": "2027-12-01",
+   "previsto_total": "1427.0",
+   "faixa_baixa": "1183.0",
+   "faixa_alta": "1704.0",
+   "vs_capacidade_1850": "-423.0"
+  }
+ ],
+ "alfa": 30.0,
+ "faixa_q10_q90": [
+  -276.6,
+  243.77500000000003
+ ],
+ "n_treino": 48,
+ "n_valid": 18,
+ "n_teste": 18
+}
