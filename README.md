@@ -5,11 +5,10 @@ Projeto aplicado da disciplina de Aprendizagem de Máquina Supervisionada (UFPB/
 
 ## Problema, decisão e alvo
 
-- **Problema:** o volume mensal de exames fica registrado no sistema, mas não é usado para nada, e às vezes falta tempo para dar conta de tudo.
-- **Decisão apoiada:** planejar a capacidade de trabalho (pessoas, escalas, insumos) dos meses de 2027. O demandante organiza o trabalho no início de cada mês.
-- **Alvo:** número de exames recebidos por **origem** (São Lucas, Roseane Dore, Maurílio de Almeida, Viver Mais, SUS e Particulares) em cada mês.
-- **Horizonte:** agosto a dezembro de 2027, a partir do último mês observado (setembro de 2026), isto é, 11 a 15 meses à frente.
-- **Dados:** base oficial enviada pelo demandante, 14 meses (agosto/2025 a setembro/2026), contagens mensais por origem.
+- **Problema:** o laboratório não usa o volume mensal de exames, que já fica registrado no sistema, e às vezes falta tempo para dar conta de tudo.
+- **Decisão apoiada:** a organização do trabalho do mês, feita pelo demandante no início de cada mês.
+- **Alvo:** quantidade de exames recebidos por policlínica ou USF em cada mês (unidade × mês).
+- **Fontes:** relatórios enviados pelo demandante (ainda não recebidos). Enquanto isso, o código roda com dados sintéticos, identificados como demonstração.
 
 ## Equipe
 
@@ -22,20 +21,23 @@ Vítor Batista, Marcello Siqueira e Ricardo César. Demandante: Frederico Torres
 ├── README.md
 ├── requirements.txt          # dependências com versões
 ├── dados/
-│   ├── bruto/                # planilha original dados_lapae.xlsx (ver LEIAME.md)
-│   └── processado/           # previsões e métricas geradas pelos notebooks
+│   ├── bruto/                # relatórios originais (não versionados; ver LEIAME.md)
+│   └── processado/           # base analítica gerada pelo notebook 01
 ├── notebooks/
-│   ├── 01_auditoria.ipynb    # conferência do arquivo, esquema, totais e perfil por origem
-│   ├── 02_baseline.ipynb     # variáveis, partição temporal e baselines
-│   └── 03_modelo.ipynb       # Ridge, comparação, backtest, resíduos e previsão de 2027
-├── src/                      # funções reutilizadas pelo pipeline
-├── tests/                    # testes do pipeline (dados sintéticos)
-└── docs/                     # dicionário de dados, relatórios das Entregas 3, 4 e 5, figuras
+│   ├── 01_auditoria.ipynb          # inspeção, limpeza, contagens e base mensal
+│   ├── 02_baseline.ipynb           # partição temporal, pré-processador e baselines
+│   ├── 03_modelagem.ipynb          # 4 modelos, CV temporal, quadro de comparação, teste
+│   ├── 04_limiar_calibracao.ipynb  # B, C, t*, capacidade, calibração
+│   └── 05_erros_equidade.ipynb     # erros por faixa, perfil e grupo; equidade e proxies
+├── src/                      # funções reutilizadas pelo pipeline (executar.py roda tudo)
+├── tests/                    # testes do pipeline e da modelagem (dados sintéticos)
+├── resultados/               # tabelas geradas por src.executar (demo/ versionado; real/ fora do Git)
+└── docs/                     # dicionário, Entregas 3 e 4, relatório preliminar e checklist da Entrega 6
 ```
 
 ## Como executar
 
-Requer Python 3.13 (ambiente de referência). Coloque `dados_lapae.xlsx` em `dados/bruto/` (ver `dados/bruto/LEIAME.md`).
+Requer Python 3.13 (ambiente de referência).
 
 ```bash
 python -m venv .venv
@@ -45,30 +47,37 @@ pip install -r requirements.txt
 python -m pytest                   # testes do pipeline
 jupyter nbconvert --to notebook --execute --inplace notebooks/01_auditoria.ipynb
 jupyter nbconvert --to notebook --execute --inplace notebooks/02_baseline.ipynb
-jupyter nbconvert --to notebook --execute --inplace notebooks/03_modelo.ipynb
-```
 
-Execute os notebooks nessa ordem. Todos os caminhos são relativos à raiz do repositório e a semente está fixa (`src/config.py`).
-Resultados: `dados/processado/previsao_2027_por_origem.csv`, `previsao_2027_total.csv` e `resultados.json`.
+python -m src.executar             # Entrega 6: modelos, limiar, erros e equidade -> resultados/<modo>/
+python -m src.relatorio            # regera docs/E06_equipeXX_relatorio_preliminar.md
+```
+Os notebooks 03 a 05 rodam do mesmo modo (`nbconvert --execute`); o 03 deve rodar antes do 04 e do 05.
+
+Sem arquivos em `dados/bruto/`, os notebooks rodam em **modo demonstração** (dados sintéticos) e mostram um aviso.
+Nenhum resultado desse modo é resultado do projeto. Com os relatórios reais na pasta, o mesmo código usa os dados reais.
+Todos os caminhos são relativos à raiz do repositório.
 
 ## Decisões de método
 
-- **Variáveis conhecidas de antemão:** origem, mês do ano (e, opcionalmente, tendência e dias úteis). Não há defasagens do alvo, porque os meses-alvo estão 11 a 15 meses além do último dado.
-- **Partição temporal:** treino ago/2025–mar/2026 (8 meses), validação abr–jun/2026 (3), teste jul–set/2026 (3, usado uma vez). Backtest de origem móvel como checagem adicional.
-- **Sem vazamento:** nível da origem, imputação, escala e codificação são ajustados só no treino, dentro do modelo/`Pipeline`; categorias novas são ignoradas pelo codificador.
-- **Baselines:** trivial (média e mediana do treino por origem) e operacional (hipótese: repetir o último mês observado).
-- **Modelo:** Ridge sobre o desvio relativo à média de cada origem, com efeito do mês do ano; `alpha = 30` (10 a 100 dão resultado quase igual no backtest).
-- **Métrica principal:** MAE do total mensal, em exames. Secundárias: WAPE por origem e viés do total (previsto − real).
+- **Partição temporal:** a decisão é aplicada ao futuro; treino no passado, validação e teste em meses posteriores.
+- **Sem vazamento:** variáveis derivadas só usam meses anteriores ao mês-alvo; imputação, codificação e escala são ajustadas apenas no treino, dentro de um `Pipeline`; categorias novas no teste são ignoradas pelo codificador.
+- **Baselines:** persistência (hipótese de baseline operacional), média e mediana do treino, média móvel de 3 meses.
+- **Métricas:** MAE (principal, em exames por unidade e mês), WAPE, viés (previsto − real) e erro do total mensal.
+- **Modelos (Entrega 6):** Ridge, árvore de decisão, random forest e gradient boosting; hiperparâmetros por validação cruzada com janela expansiva dentro do treino; teste avaliado uma única vez, com reajuste em treino + validação.
+- **Regra de escolha:** o modelo só substitui o baseline se reduzir o MAE em pelo menos 10% e não piorar o erro do total mensal [H].
+- **Limiar:** decisão derivada "reforçar o mês se P(total > k) ≥ t\* = C/(B+C)"; B e C ainda são hipótese [L].
 
-## Limites conhecidos
+## Status
 
-- Só 14 meses: cada mês do ano aparece no máximo duas vezes; outubro a dezembro, uma vez. A sazonalidade não é verificável.
-- O horizonte de 11 a 15 meses nunca foi validado (o backtest cobre 1 a 3 meses).
-- A diferença entre o modelo e a média histórica por origem é pequena e está dentro do ruído.
-- Origens em crescimento (Particulares, São Lucas) tendem a ser subestimadas; o viés do total no backtest é negativo.
-- A base oficial não traz município.
+| Etapa | Situação |
+|---|---|
+| Escuta do demandante e Canvas de ML (Entrega 3) | Concluída |
+| Contrato de dados, pipeline e testes (Entrega 4) | Pipeline e testes prontos com dados sintéticos |
+| Execução com dados reais e baseline real | Pendente dos relatórios do demandante |
+| Modelagem, limiar, erros, equidade e relatório preliminar (Entrega 6) | Código e rascunho prontos; números reais dependem dos relatórios |
+| Devolutiva ao laboratório | Pendente |
 
 ## Dados e privacidade
 
-Só contagens mensais agregadas por origem, sem identificação de pacientes. Por serem dados de saúde, o uso depende de autorização do
-laboratório e segue a LGPD. A planilha original não é versionada sem autorização (`.gitignore`).
+Só contagens agregadas por unidade e mês, sem identificação de pacientes. Por serem dados de saúde, o acesso e o uso dependem de
+autorização do laboratório e seguem a LGPD. Relatórios originais não são versionados (`.gitignore`).

@@ -1,33 +1,33 @@
 # Dicionário de dados
 
-Série = origem do exame. Linha da base analítica = uma origem em um mês. Chave: (`origem`, `mes`).
+Contrato de dados completo no PDF da Entrega 4 (seção 1). Chave: (`unidade`, `mes`). Uma linha = exames de uma unidade em um mês.
 Marcação: **[F]** fato relatado pelo demandante, **[H]** hipótese da equipe, **[L]** lacuna.
 
-## Entrada (`dados/bruto/dados_lapae.xlsx`)
+## Registros brutos (`dados/bruto/`)
 
-Planilha larga: 6 linhas (origens) e 14 colunas de mês (`Agosto(2025)` a `Setembro(2026)`), valores inteiros.
-Origens: São Lucas, Roseane Dore, Maurílio de Almeida, Viver Mais, SUS, Particulares. Unidade: exames recebidos no mês [L: confirmar com o demandante se "recebidos" é a data de chegada ou de cadastro].
+| Coluna | Tipo | Descrição | Marca |
+|---|---|---|---|
+| `unidade` | texto | Policlínica ou USF de origem | [H] nome exato a confirmar |
+| `municipio` | texto | Município da unidade | [L] lista virá nos relatórios |
+| `data_chegada` | data | Data de chegada do exame ao laboratório | [F] fica registrada no sistema |
+| `id_registro` | texto/número | Identificador do registro, se existir | [L] |
 
-## Base analítica (em memória; `src/dados.py`)
+## Base analítica (`dados/processado/base_mensal.csv`)
 
 | Coluna | Tipo | Descrição |
 |---|---|---|
-| `origem` | texto | Origem do exame, sem acentos e em maiúsculas |
-| `mes` | data (1º dia do mês) | Mês |
-| `exames` | inteiro (NaN se não houver registro) | **Alvo**: exames do mês. Ausência não é convertida em zero. |
+| `unidade` | texto | Chave, parte 1 |
+| `mes` | data (1º dia do mês) | Chave, parte 2 |
+| `municipio` | texto | Município da unidade |
+| `exames` | inteiro (NaN se não houver registro) | **Alvo**: exames com data de chegada no mês. Ausência não é convertida em zero. |
 
-## Variáveis (`src/variaveis.py`), todas conhecidas de antemão
+## Variáveis derivadas (`src/variaveis.py`)
 
-| Variável | Definição | Uso |
+| Variável | Definição | Permitida? |
 |---|---|---|
-| `mes_do_ano` | Mês do calendário (1 a 12), categoria | Sim, no modelo |
-| `tendencia` | Meses desde o primeiro mês da base | Disponível; desligada por padrão (extrapolação de 11 a 15 meses não validável) |
-| `dias_uteis` | Dias úteis do mês, sem feriados | Calculada; não usada no modelo atual |
-| `origem` | Identificação da série | Sim, fixa o nível (média da origem no treino) |
+| `lag_1`, `lag_2`, `lag_3` | Exames da unidade 1, 2 e 3 meses antes | Sim, condicionada ao corte de 4 dias [L] |
+| `media_movel_3` | Média dos 3 meses anteriores (shift antes da janela) | Sim |
+| `mes_do_ano` | Mês do calendário (1 a 12), tratado como categoria | Sim |
+| `dias_uteis` | Dias úteis do mês-alvo, sem feriados | Sim |
 
-Defasagens do alvo e médias móveis **não são usadas**: para prever 11 a 15 meses à frente, elas não existem nos meses-alvo.
-Variáveis proibidas (alvo, temporal, partição, consequência da decisão): ver relatórios das Entregas 4 e 5.
-
-## Saídas (`dados/processado/`)
-
-`previsao_2027_por_origem.csv`, `previsao_2027_total.csv`, `resultados.json`, `baselines_validacao.csv`.
+Variáveis proibidas por vazamento (alvo, temporal, partição ou consequência da decisão) estão no PDF, seção 4.

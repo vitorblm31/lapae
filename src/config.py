@@ -7,24 +7,43 @@ PROCESSADO = RAIZ / "dados" / "processado"
 
 SEMENTE = 42
 
-# Contrato de dados: série = origem do exame (laboratório, clínica ou segmento); linha = origem x mês
-COL_ORIGEM = "origem"
-COL_ID = "id_registro"         # opcional, usado para remover duplicatas nos registros por exame
-COL_DATA = "data_chegada"      # só nos registros por exame
-COL_MES = "mes"                # primeiro dia do mês
-COL_ALVO = "exames"            # exames recebidos no mês
+# Colunas do contrato de dados (unidade x mês)
+COL_UNIDADE = "unidade"
+COL_MUNICIPIO = "municipio"
+COL_ID = "id_registro"
+COL_DATA = "data_chegada"
+COL_MES = "mes"
+COL_ALVO = "exames"
 
-CHAVE = [COL_ORIGEM, COL_MES]
+# Variáveis candidatas (ver docs/dicionario_dados.md)
+NUMERICAS = ["lag_1", "lag_2", "lag_3", "media_movel_3", "dias_uteis"]
+CATEGORICAS = [COL_UNIDADE, COL_MUNICIPIO, "mes_do_ano"]
 
-# Variáveis conhecidas de antemão (não dependem do alvo nem de meses futuros)
-NUMERICAS = ["tendencia", "dias_uteis"]
-CATEGORICAS = [COL_ORIGEM, "mes_do_ano"]
-ATRIBUTOS = NUMERICAS + CATEGORICAS
+# Partição temporal (meses): proposta inicial, ajustável quando a série real chegar
+N_MESES_VALIDACAO = 2
+N_MESES_TESTE = 2
 
-# Partição temporal (em meses)
-N_MESES_VALIDACAO = 3
-N_MESES_TESTE = 3
+# ---- Entrega 6: modelagem, limiar, erros e equidade ----
+RESULTADOS = RAIZ / "resultados"
 
-# Meses a prever (pedido da equipe) e capacidade média informada pelo demandante
-MESES_PREVISAO = ["2027-08-01", "2027-09-01", "2027-10-01", "2027-11-01", "2027-12-01"]
-CAPACIDADE_MEDIA = 1850
+# Capacidade k: [F] média de 1.850 exames (demandante); [L] unidade de tempo (mensal?) e o que limita, a confirmar.
+CAPACIDADE_K = 1850
+
+# Custos do erro, em unidade comum (horas-equipe). [L] NÃO foram estimados com o demandante.
+# Valores abaixo são HIPÓTESE de trabalho; o relatório traz análise de sensibilidade (RAZOES_C_SOBRE_B).
+# B = benefício de reforçar a equipe quando o mês de fato estoura a capacidade (evita atraso).
+# C = custo de reforçar quando o mês não estoura (capacidade ociosa).
+B_HIPOTESE = 2.0
+C_HIPOTESE = 1.0
+RAZOES_C_SOBRE_B = [0.25, 0.5, 1.0, 2.0]
+
+# Validação cruzada com janela expansiva (origem móvel), em meses
+MIN_MESES_TREINO_CV = 2
+
+# Regra "complexidade precisa se pagar" [H]: ganho mínimo relativo de MAE sobre o melhor baseline na validação
+GANHO_MINIMO_RELATIVO = 0.10
+
+# Equidade [H]: diferença de WAPE entre grupos acima da qual o resultado é sinalizado
+LIMITE_RAZAO_WAPE_GRUPOS = 1.5
+MIN_LINHAS_GRUPO = 4
+NIVEL_INTERVALO = 0.80

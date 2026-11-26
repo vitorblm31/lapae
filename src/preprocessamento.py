@@ -7,16 +7,20 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from src.config import CATEGORICAS, NUMERICAS
 
 
-def construir_preprocessador(numericas=None, categoricas=None) -> ColumnTransformer:
-    numericas = numericas or NUMERICAS
-    categoricas = categoricas or CATEGORICAS
-    num = Pipeline([("imputacao", SimpleImputer(strategy="median")), ("escala", StandardScaler())])
+def construir_preprocessador(numericas=None, categoricas=None, escalar: bool = True) -> ColumnTransformer:
+    """`escalar=False` para modelos de árvore, que não dependem da escala das variáveis."""
+    numericas = numericas if numericas is not None else NUMERICAS
+    categoricas = categoricas if categoricas is not None else CATEGORICAS
+    passos = [("imputacao", SimpleImputer(strategy="median"))]
+    if escalar:
+        passos.append(("escala", StandardScaler()))
+    num = Pipeline(passos)
     cat = OneHotEncoder(handle_unknown="ignore")  # categoria nova no teste vira vetor zerado
     return ColumnTransformer([("num", num, numericas), ("cat", cat, categoricas)], remainder="drop")
 
 
-def construir_pipeline(modelo, numericas=None, categoricas=None) -> Pipeline:
-    return Pipeline([("pre", construir_preprocessador(numericas, categoricas)), ("modelo", modelo)])
+def construir_pipeline(modelo, numericas=None, categoricas=None, escalar: bool = True) -> Pipeline:
+    return Pipeline([("pre", construir_preprocessador(numericas, categoricas, escalar)), ("modelo", modelo)])
 
 
 def resumo_do_fit(preprocessador: ColumnTransformer) -> dict:
